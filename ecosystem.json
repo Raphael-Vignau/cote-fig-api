@@ -1,0 +1,14 @@
+{
+    "apps" : [{
+      "name"        : "cote-fig-API",
+      "script"      : "dist/main.js",
+      "args"        : [],
+      "watch"       : true,
+      "node_args"   : "",
+      "merge_logs"  : true,
+      "cwd"         : "/home/clients/adb790686e616126ea235a9e13e86125/sites/cote-fig-api.raphael-vignau.dev",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }]
+  }
