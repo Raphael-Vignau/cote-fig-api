@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateFigurineDto {
 
@@ -31,12 +31,12 @@ export class CreateFigurineDto {
     readonly scale: string;
 
     @IsOptional()
-    @IsString()
+    @IsNumber()
     readonly year: number;
 
     @IsOptional()
-    @IsString()
-    price: string;
+    @IsNumber()
+    price: number;
 
     @IsOptional()
     @IsString()

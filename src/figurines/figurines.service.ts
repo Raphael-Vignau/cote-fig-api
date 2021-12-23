@@ -1,22 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FigurineEntity } from './entities/figurine.entity';
-import { Like, Repository, UpdateResult } from 'typeorm';
-import { CreateFigurineDto } from './dto/create-figurine.dto';
-import { UpdateFigurineDto } from './dto/update-figurine.dto';
-import { existsSync, unlink } from 'fs';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { FigurineEntity } from "./entities/figurine.entity";
+import { Like, Repository, UpdateResult } from "typeorm";
+import { CreateFigurineDto } from "./dto/create-figurine.dto";
+import { UpdateFigurineDto } from "./dto/update-figurine.dto";
+import { existsSync, unlink } from "fs";
+import { TagEntity } from "src/tags/entities/tag.entity";
 
 @Injectable()
 export class FigurinesService {
 
     constructor(
         @InjectRepository(FigurineEntity)
-        private figurineRepository: Repository<FigurineEntity>
+        private figurineRepository: Repository<FigurineEntity>,
+        @InjectRepository(TagEntity)
+        private tagRepository: Repository<TagEntity>
     ) {
     }
 
     async findOneFigurineById(id: string): Promise<FigurineEntity> {
-        return await this.figurineRepository.findOne({ id });
+        return await this.figurineRepository.findOne({ id }, { relations: ["tags"] });
     }
 
     async findFigurines(
@@ -26,9 +29,13 @@ export class FigurinesService {
         order: any
     ): Promise<FigurineEntity[]> {
         return await this.figurineRepository.find({
-            skip, take, order, where: {
-                name: Like(`%${contains}%`)
-            }
+            skip, take, order,
+            where: [
+                { name: Like(`%${contains}%`) },
+                { publisher: Like(`%${contains}%`) },
+                { artist: Like(`%${contains}%`) },
+                { game: Like(`%${contains}%`) }
+            ]
         });
     }
 
@@ -42,10 +49,7 @@ export class FigurinesService {
             figurine.img_name = filesFigurine.img_figurine[0].filename;
         }
         const newFigurine = {
-            ...figurine,
-            price: figurine.price ? Number(figurine.price) : 0,
-            year: figurine.year ? Number(figurine.year) : 0,
-            rating: 0
+            ...figurine
         };
         return await this.figurineRepository.save(newFigurine);
     }
@@ -63,14 +67,17 @@ export class FigurinesService {
             figurine.img_original_name = filesFigurine.img_figurine[0].originalname;
             figurine.img_name = filesFigurine.img_figurine[0].filename;
         }
+        if (figurine.tags && figurine.tags.length) {
+            figurine.tags.map(async (tag) => {
+                await this.tagRepository.save(tag)
+            })
+        }
         // On récupére le figurine et on remplace les anciennes valeurs
         const targetFigurine = await this.figurineRepository.preload({
             id,
-            ...figurine,
-            price: figurine.price ? Number(figurine.price) : 0,
-            year: figurine.year ? Number(figurine.year) : 0
+            ...figurine
         });
-        // tester si le figurine avec cet id n'existe pas
+        // tester si la figurine avec cet id n'existe pas
         if (!targetFigurine) {
             throw new NotFoundException();
         }
@@ -90,12 +97,19 @@ export class FigurinesService {
         if (existsSync(filePath)) {
             unlink(filePath, (err) => {
                 if (err) throw err;
-                console.log(filePath + ' was deleted');
+                console.log(filePath + " was deleted");
             });
         }
     }
 
-    async countFigurines(): Promise<number> {
-        return await this.figurineRepository.count();
+    async countFigurines(contains = ""): Promise<number> {
+        return await this.figurineRepository.count({
+            where: [
+                { name: Like(`%${contains}%`) },
+                { publisher: Like(`%${contains}%`) },
+                { artist: Like(`%${contains}%`) },
+                { game: Like(`%${contains}%`) }
+            ]
+        });
     }
 }

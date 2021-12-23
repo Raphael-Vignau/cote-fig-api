@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
-import { DeleteResult, Like, Repository } from 'typeorm';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { AuthService } from '../auth/auth.service';
-import { UserRole } from '../enums/user.role';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { InjectRepository } from "@nestjs/typeorm";
+import { UserEntity } from "./entities/user.entity";
+import { DeleteResult, Like, Repository } from "typeorm";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { AuthService } from "../auth/auth.service";
+import { UserRole } from "../enums/user.role";
 
 @Injectable()
 export class UsersService {
@@ -31,9 +31,10 @@ export class UsersService {
     ): Promise<UserEntity[]> {
         return await this.userRepository.find({
             skip, take, order,
-            where: {
-                username: Like(`%${contains}%`)
-            }
+            where: [
+                { username: Like(`%${contains}%`) },
+                { email: Like(`%${contains}%`) }
+            ]
         });
     }
 
@@ -44,7 +45,7 @@ export class UsersService {
     }
 
     async createUser(user: CreateUserDto): Promise<UserEntity> {
-        return this.userRepository.save(user)
+        return this.userRepository.save(user);
     }
 
     async updateUser(id: string, user: UpdateUserDto): Promise<UserEntity> {
@@ -67,7 +68,12 @@ export class UsersService {
         return await this.userRepository.delete(id);
     }
 
-    async countUsers(): Promise<number> {
-        return await this.userRepository.count();
+    async countUsers(contains = ""): Promise<number> {
+        return await this.userRepository.count({
+            where: [
+                { username: Like(`%${contains}%`) },
+                { email: Like(`%${contains}%`) }
+            ]
+        });
     }
 }

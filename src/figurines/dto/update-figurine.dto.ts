@@ -1,4 +1,5 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsString } from "class-validator";
+import { CreateTagDto } from "src/tags/dto/create-tag.dto";
 
 export class UpdateFigurineDto {
 
@@ -31,12 +32,12 @@ export class UpdateFigurineDto {
     readonly scale: string;
 
     @IsOptional()
-    @IsString()
+    @IsNumber()
     readonly year: number;
 
     @IsOptional()
-    @IsString()
-    price: string;
+    @IsNumber()
+    price: number;
 
     @IsOptional()
     @IsString()
@@ -45,4 +46,8 @@ export class UpdateFigurineDto {
     @IsOptional()
     @IsString()
     img_name: string;
+
+    @IsOptional()
+    @IsArray()
+    tags: CreateTagDto[];
 }

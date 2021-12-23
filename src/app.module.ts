@@ -4,6 +4,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { FigurinesModule } from "./figurines/figurines.module";
+import { TagsModule } from "./tags/tags.module";
 
 @Module({
     imports: [
@@ -42,7 +43,8 @@ import { FigurinesModule } from "./figurines/figurines.module";
         //     }
         // }),
         AuthModule,
-        FigurinesModule
+        FigurinesModule,
+        TagsModule
     ],
     controllers: [AppController]
 })

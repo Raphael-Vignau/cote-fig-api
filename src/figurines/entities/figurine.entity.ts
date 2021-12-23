@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { TimestampEntities } from "src/generics/timestamp.entities";
+import { TagEntity } from "src/tags/entities/tag.entity";
 
 @Entity("figurine")
 export class FigurineEntity extends TimestampEntities {
@@ -48,6 +49,7 @@ export class FigurineEntity extends TimestampEntities {
     year!: number;
 
     @Column({
+        default: 0,
         nullable: true
     })
     rating!: number;
@@ -67,4 +69,8 @@ export class FigurineEntity extends TimestampEntities {
         nullable: true
     })
     img_name!: string;
+
+    @ManyToMany(() => TagEntity)
+    @JoinTable()
+    tags: TagEntity[];
 }

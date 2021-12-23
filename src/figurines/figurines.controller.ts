@@ -34,7 +34,7 @@ export class FigurinesController {
 
     @Get()
     async findFigurines(
-        @Query('name_contains', new DefaultValuePipe('')) contains,
+        @Query('_contains', new DefaultValuePipe('')) contains,
         @Query('_sort', new DefaultValuePipe('name')) sortBy,
         @Query('_direction', new DefaultValuePipe('ASC')) sortDirection,
         @Query('_start', new DefaultValuePipe(0), ParseIntPipe) start,
@@ -54,8 +54,10 @@ export class FigurinesController {
     }
 
     @Get('count')
-    async countFigurines(): Promise<number> {
-        return await this.figurinesService.countFigurines();
+    async countFigurines(
+        @Query('_contains', new DefaultValuePipe('')) contains
+    ): Promise<number> {
+        return await this.figurinesService.countFigurines(contains);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)

@@ -4,13 +4,14 @@ import { FigurinesService } from './figurines.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FigurineEntity } from './entities/figurine.entity';
+import { TagEntity } from "src/tags/entities/tag.entity";
 
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true
         }),
-        TypeOrmModule.forFeature([FigurineEntity])
+        TypeOrmModule.forFeature([FigurineEntity, TagEntity])
     ],
     controllers: [FigurinesController],
     providers: [FigurinesService]

@@ -53,9 +53,10 @@ export class UsersController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Get('count')
-    async countUsers(): Promise<number> {
-        //TODO filter sur le count ?
-        return await this.usersService.countUsers();
+    async countUsers(
+        @Query('_contains', new DefaultValuePipe('')) contains
+    ): Promise<number> {
+        return await this.usersService.countUsers(contains);
     }
 
     @UseGuards(JwtAuthGuard)
