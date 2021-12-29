@@ -68,12 +68,27 @@ export class FigurinesService {
         skip: number,
         take: number,
         order: any ): Promise<FigurineEntity[]> {
-        console.log("collection of user : " + idUser);
+        console.log("Collection of user : " + idUser);
         return await this.figurineRepository.find({
             skip, take, order,
             join: { alias: "figurines", innerJoin: { holders: "figurines.holders" } },
             where: qb => {
                 qb.where("holders.id = :id", { id: idUser });
+            }
+        });
+    }
+
+    async findMyWishlist(
+        idUser: string,
+        skip: number,
+        take: number,
+        order: any ): Promise<FigurineEntity[]> {
+        console.log("Wishlist of user : " + idUser);
+        return await this.figurineRepository.find({
+            skip, take, order,
+            join: { alias: "figurines", innerJoin: { researchers: "figurines.researchers" } },
+            where: qb => {
+                qb.where("researchers.id = :id", { id: idUser });
             }
         });
     }

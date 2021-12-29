@@ -78,6 +78,21 @@ export class FigurinesController {
         return await this.figurinesService.findMyCollection(payload.sub, start, limit, order);
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Get('wishlist/me')
+    async findMyWishlist(
+        @User() payload: PayloadInterface,
+        @Query('_sort', new DefaultValuePipe('name')) sortBy,
+        @Query('_direction', new DefaultValuePipe('ASC')) sortDirection,
+        @Query('_start', new DefaultValuePipe(0), ParseIntPipe) start,
+        @Query('_limit', new DefaultValuePipe(3), ParseIntPipe) limit
+    ): Promise<FigurineEntity[]> {
+        const order = {
+            [sortBy]: sortDirection.toUpperCase()
+        };
+        return await this.figurinesService.findMyWishlist(payload.sub, start, limit, order);
+    }
+
     @Get('count')
     async countFigurines(
         @Query('_contains', new DefaultValuePipe('')) contains

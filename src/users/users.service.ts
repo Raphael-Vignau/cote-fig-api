@@ -102,6 +102,40 @@ export class UsersService {
         return await this.userRepository.save(targetUser);
     }
 
+    async addToWishlist(userId: string, figurineId: string): Promise<UserEntity> {
+        console.log("User : "+userId+" add to wishlist : " + figurineId);
+        const targetUser = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ["wishlist"]
+        });
+        if (!targetUser) {
+            throw new NotFoundException();
+        }
+        const alreadyIn = await targetUser.wishlist.find( figurine => figurine.id === figurineId );
+        if (alreadyIn) {
+            throw new NotAcceptableException({code: 406, message: 'Déjà dans la wishlist !' } );
+        }
+        const targetFigurine = await this.figurineRepository.findOne({ id: figurineId });
+        if (!targetFigurine) {
+            throw new NotFoundException();
+        }
+        targetUser.wishlist.push(targetFigurine);
+        return await this.userRepository.save(targetUser);
+    }
+
+    async removeToWishlist(userId: string, figurineId: string): Promise<UserEntity> {
+        console.log("User : "+userId+" remove to wishlist : " + figurineId);
+        const targetUser = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ["wishlist"]
+        });
+        if (!targetUser) {
+            throw new NotFoundException();
+        }
+        targetUser.wishlist = targetUser.wishlist.filter( figurine => figurine.id !== figurineId)
+        return await this.userRepository.save(targetUser);
+    }
+
     async deleteUser(id: string): Promise<DeleteResult> {
         return await this.userRepository.delete(id);
     }

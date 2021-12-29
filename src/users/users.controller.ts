@@ -84,6 +84,24 @@ export class UsersController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Put('me/wishlist/:idFigurine')
+    async addToWishlist(
+        @User() payload: PayloadInterface,
+        @Param('idFigurine') idFigurine: string
+        ): Promise<UserEntity> {
+        return await this.usersService.addToWishlist(payload.sub, idFigurine);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete('me/wishlist/:idFigurine')
+    async removeToWishlist(
+        @User() payload: PayloadInterface,
+        @Param('idFigurine') idFigurine: string
+        ): Promise<UserEntity> {
+        return await this.usersService.removeToWishlist(payload.sub, idFigurine);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Put('me')
     async updateMe(@User() payload: PayloadInterface, @Body() user: UpdateUserDto): Promise<UserEntity> {
         return await this.usersService.updateUser(payload.sub, user);
