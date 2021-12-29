@@ -9,7 +9,7 @@ import {
     Put,
     Query,
     UseGuards
-} from '@nestjs/common';
+} from "@nestjs/common";
 import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { DeleteResult } from 'typeorm';
@@ -63,6 +63,24 @@ export class UsersController {
     @Get('me')
     async getMe(@User() payload: PayloadInterface): Promise<UserEntity> {
         return await this.usersService.findOneUserById(payload.sub);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Put('me/collection/:idFigurine')
+    async addToCollection(
+        @User() payload: PayloadInterface,
+        @Param('idFigurine') idFigurine: string
+        ): Promise<UserEntity> {
+        return await this.usersService.addToCollection(payload.sub, idFigurine);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete('me/collection/:idFigurine')
+    async removeToCollection(
+        @User() payload: PayloadInterface,
+        @Param('idFigurine') idFigurine: string
+        ): Promise<UserEntity> {
+        return await this.usersService.removeToCollection(payload.sub, idFigurine);
     }
 
     @UseGuards(JwtAuthGuard)

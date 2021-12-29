@@ -23,6 +23,8 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileFilter } from '../utils/file-upload.utils';
 import { existsSync } from 'fs';
+import { User } from "src/decorators/user.decorator";
+import { PayloadInterface } from "src/users/interfaces/payload.interface";
 
 @Controller('figurines')
 export class FigurinesController {
@@ -48,9 +50,32 @@ export class FigurinesController {
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    @Get('export')
+    @Get('all')
     async findAll(): Promise<FigurineEntity[]> {
         return await this.figurinesService.findAll();
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('holders/:id')
+    async findHolders(
+        @Param('id') idFigurine: string,
+    ): Promise<FigurineEntity[]> {
+        return await this.figurinesService.findHolders(idFigurine);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('collection/me')
+    async findMyCollection(
+        @User() payload: PayloadInterface,
+        @Query('_sort', new DefaultValuePipe('name')) sortBy,
+        @Query('_direction', new DefaultValuePipe('ASC')) sortDirection,
+        @Query('_start', new DefaultValuePipe(0), ParseIntPipe) start,
+        @Query('_limit', new DefaultValuePipe(3), ParseIntPipe) limit
+    ): Promise<FigurineEntity[]> {
+        const order = {
+            [sortBy]: sortDirection.toUpperCase()
+        };
+        return await this.figurinesService.findMyCollection(payload.sub, start, limit, order);
     }
 
     @Get('count')

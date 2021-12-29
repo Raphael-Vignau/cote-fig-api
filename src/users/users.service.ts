@@ -6,12 +6,16 @@ import { DeleteResult, Like, Repository } from "typeorm";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { AuthService } from "../auth/auth.service";
 import { UserRole } from "../enums/user.role";
+import { FigurineEntity } from "src/figurines/entities/figurine.entity";
+import { NotAcceptableException } from "@nestjs/common/exceptions/not-acceptable.exception";
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(UserEntity)
-        private userRepository: Repository<UserEntity>
+        private userRepository: Repository<UserEntity>,
+        @InjectRepository(FigurineEntity)
+        private figurineRepository: Repository<FigurineEntity>
     ) {
     }
 
@@ -61,6 +65,40 @@ export class UsersService {
         if (user.password) {
             targetUser.password = await AuthService.hashPassword(user.password);
         }
+        return await this.userRepository.save(targetUser);
+    }
+
+    async addToCollection(userId: string, figurineId: string): Promise<UserEntity> {
+        console.log("User : "+userId+" add to collection : " + figurineId);
+        const targetUser = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ["collection"]
+        });
+        if (!targetUser) {
+            throw new NotFoundException();
+        }
+        const alreadyIn = await targetUser.collection.find( figurine => figurine.id === figurineId );
+        if (alreadyIn) {
+            throw new NotAcceptableException({code: 406, message: 'Déjà dans la collection !' } );
+        }
+        const targetFigurine = await this.figurineRepository.findOne({ id: figurineId });
+        if (!targetFigurine) {
+            throw new NotFoundException();
+        }
+        targetUser.collection.push(targetFigurine);
+        return await this.userRepository.save(targetUser);
+    }
+
+    async removeToCollection(userId: string, figurineId: string): Promise<UserEntity> {
+        console.log("User : "+userId+" remove to collection : " + figurineId);
+        const targetUser = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ["collection"]
+        });
+        if (!targetUser) {
+            throw new NotFoundException();
+        }
+        targetUser.collection = targetUser.collection.filter( figurine => figurine.id !== figurineId)
         return await this.userRepository.save(targetUser);
     }
 

@@ -1,12 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { UserRole } from "src/enums/user.role";
 import { TimestampEntities } from "src/generics/timestamp.entities";
 import { UserStatus } from "src/enums/user.status";
+import { FigurineEntity } from "src/figurines/entities/figurine.entity";
 
-@Entity('user')
+@Entity("user")
 export class UserEntity extends TimestampEntities {
 
-    @PrimaryGeneratedColumn('uuid')
+    @PrimaryGeneratedColumn("uuid")
     id!: string;
 
     @Column({
@@ -26,14 +27,14 @@ export class UserEntity extends TimestampEntities {
     password!: string;
 
     @Column({
-        type: 'enum',
+        type: "enum",
         enum: UserRole,
         default: UserRole.USER
     })
     role!: UserRole;
 
     @Column({
-        type: 'enum',
+        type: "enum",
         enum: UserStatus,
         default: UserStatus.PENDING
     })
@@ -49,4 +50,9 @@ export class UserEntity extends TimestampEntities {
     })
     city!: string;
 
+    @ManyToMany(() => FigurineEntity, figurine => figurine.holders)
+    collection: FigurineEntity[];
+
+    @ManyToMany(() => FigurineEntity, figurine => figurine.researchers)
+    wishlist: FigurineEntity[];
 }

@@ -6,6 +6,7 @@ import { CreateFigurineDto } from "./dto/create-figurine.dto";
 import { UpdateFigurineDto } from "./dto/update-figurine.dto";
 import { existsSync, unlink } from "fs";
 import { TagEntity } from "src/tags/entities/tag.entity";
+import { UserEntity } from "src/users/entities/user.entity";
 
 @Injectable()
 export class FigurinesService {
@@ -13,6 +14,8 @@ export class FigurinesService {
     constructor(
         @InjectRepository(FigurineEntity)
         private figurineRepository: Repository<FigurineEntity>,
+        @InjectRepository(UserEntity)
+        private userRepository: Repository<UserEntity>,
         @InjectRepository(TagEntity)
         private tagRepository: Repository<TagEntity>
     ) {
@@ -43,6 +46,38 @@ export class FigurinesService {
         return await this.figurineRepository.find();
     }
 
+    async findHolders(idFigurine: string): Promise<FigurineEntity[]> {
+        return await this.figurineRepository.find({
+            relations: ["holders"],
+            where: {
+                id: idFigurine
+            }
+        });
+    }
+
+    // async findMyCollection(idUser: string): Promise<FigurineEntity[]> {
+    //     console.log("collection of user : " + idUser);
+    //     return await this.figurineRepository.createQueryBuilder("figurine")
+    //         .innerJoinAndSelect("figurine.holders", "holders")
+    //         .where("holders.id = :id", { id: idUser })
+    //         .getMany()
+    // }
+
+    async findMyCollection(
+        idUser: string,
+        skip: number,
+        take: number,
+        order: any ): Promise<FigurineEntity[]> {
+        console.log("collection of user : " + idUser);
+        return await this.figurineRepository.find({
+            skip, take, order,
+            join: { alias: "figurines", innerJoin: { holders: "figurines.holders" } },
+            where: qb => {
+                qb.where("holders.id = :id", { id: idUser });
+            }
+        });
+    }
+
     async createFigurine(figurine: CreateFigurineDto, filesFigurine?: { img_figurine?: Express.Multer.File[], pdf_figurine?: Express.Multer.File[] }): Promise<FigurineEntity> {
         if (filesFigurine && filesFigurine.img_figurine && filesFigurine.img_figurine.length) {
             figurine.img_original_name = filesFigurine.img_figurine[0].originalname;
@@ -69,8 +104,8 @@ export class FigurinesService {
         }
         if (figurine.tags && figurine.tags.length) {
             figurine.tags.map(async (tag) => {
-                await this.tagRepository.save(tag)
-            })
+                await this.tagRepository.save(tag);
+            });
         }
         // On récupére le figurine et on remplace les anciennes valeurs
         const targetFigurine = await this.figurineRepository.preload({

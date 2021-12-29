@@ -6,6 +6,5 @@ export interface PayloadInterface {
     email: string,
     role: UserRole,
     sub: string,
-    status: UserStatus
-
+    status: UserStatus,
 }

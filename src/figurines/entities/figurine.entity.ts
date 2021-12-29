@@ -1,6 +1,7 @@
 import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { TimestampEntities } from "src/generics/timestamp.entities";
 import { TagEntity } from "src/tags/entities/tag.entity";
+import { UserEntity } from "src/users/entities/user.entity";
 
 @Entity("figurine")
 export class FigurineEntity extends TimestampEntities {
@@ -73,4 +74,12 @@ export class FigurineEntity extends TimestampEntities {
     @ManyToMany(() => TagEntity)
     @JoinTable()
     tags: TagEntity[];
+
+    @ManyToMany(() => UserEntity, user => user.collection)
+    @JoinTable()
+    holders: UserEntity[];
+
+    @ManyToMany(() => UserEntity, user => user.wishlist)
+    @JoinTable()
+    researchers: UserEntity[];
 }
