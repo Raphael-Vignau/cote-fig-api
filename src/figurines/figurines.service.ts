@@ -21,8 +21,15 @@ export class FigurinesService {
     ) {
     }
 
-    async findOneFigurineById(id: string): Promise<FigurineEntity> {
-        return await this.figurineRepository.findOne({ id }, { relations: ["tags"] });
+    async findOneFigurineById(id: string): Promise<Partial<FigurineEntity>> {
+        return await this.figurineRepository.createQueryBuilder('figurine')
+            .leftJoin('figurine.holders', 'holders')
+            .leftJoin('figurine.researchers', 'researchers')
+            .leftJoin('figurine.tags', 'tags')
+            .addSelect(['holders.id', 'holders.username', 'researchers.id', 'researchers.username', 'tags.name'])
+            .where({id})
+            .getOne()
+
     }
 
     async findFigurines(
@@ -33,6 +40,8 @@ export class FigurinesService {
     ): Promise<FigurineEntity[]> {
         return await this.figurineRepository.find({
             skip, take, order,
+            relations: ["holders", "researchers"],
+            loadRelationIds: true,
             where: [
                 { name: Like(`%${contains}%`) },
                 { publisher: Like(`%${contains}%`) },
@@ -46,28 +55,11 @@ export class FigurinesService {
         return await this.figurineRepository.find();
     }
 
-    async findHolders(idFigurine: string): Promise<FigurineEntity[]> {
-        return await this.figurineRepository.find({
-            relations: ["holders"],
-            where: {
-                id: idFigurine
-            }
-        });
-    }
-
-    // async findMyCollection(idUser: string): Promise<FigurineEntity[]> {
-    //     console.log("collection of user : " + idUser);
-    //     return await this.figurineRepository.createQueryBuilder("figurine")
-    //         .innerJoinAndSelect("figurine.holders", "holders")
-    //         .where("holders.id = :id", { id: idUser })
-    //         .getMany()
-    // }
-
     async findMyCollection(
         idUser: string,
         skip: number,
         take: number,
-        order: any ): Promise<FigurineEntity[]> {
+        order: any): Promise<FigurineEntity[]> {
         console.log("Collection of user : " + idUser);
         return await this.figurineRepository.find({
             skip, take, order,
@@ -82,7 +74,7 @@ export class FigurinesService {
         idUser: string,
         skip: number,
         take: number,
-        order: any ): Promise<FigurineEntity[]> {
+        order: any): Promise<FigurineEntity[]> {
         console.log("Wishlist of user : " + idUser);
         return await this.figurineRepository.find({
             skip, take, order,

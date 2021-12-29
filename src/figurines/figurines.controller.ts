@@ -56,14 +56,6 @@ export class FigurinesController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get('holders/:id')
-    async findHolders(
-        @Param('id') idFigurine: string,
-    ): Promise<FigurineEntity[]> {
-        return await this.figurinesService.findHolders(idFigurine);
-    }
-
-    @UseGuards(JwtAuthGuard)
     @Get('collection/me')
     async findMyCollection(
         @User() payload: PayloadInterface,
@@ -98,6 +90,11 @@ export class FigurinesController {
         @Query('_contains', new DefaultValuePipe('')) contains
     ): Promise<number> {
         return await this.figurinesService.countFigurines(contains);
+    }
+
+    @Get(':id')
+    async findOneFigurine(@Param('id') id: string): Promise<Partial<FigurineEntity>> {
+        return await this.figurinesService.findOneFigurineById(id);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
@@ -156,12 +153,5 @@ export class FigurinesController {
             });
         }
         throw new NotFoundException();
-    }
-
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
-    @Get(':id')
-    async findOneFigurine(@Param('id') id: string): Promise<FigurineEntity> {
-        return await this.figurinesService.findOneFigurineById(id);
     }
 }
