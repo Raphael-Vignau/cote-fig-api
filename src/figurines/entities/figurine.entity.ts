@@ -75,11 +75,11 @@ export class FigurineEntity extends TimestampEntities {
     @JoinTable()
     tags: TagEntity[];
 
-    @ManyToMany(() => UserEntity, user => user.collection)
+    @ManyToMany(() => UserEntity, user => user.collection, { onDelete: 'CASCADE' })
     @JoinTable()
     holders: UserEntity[];
 
-    @ManyToMany(() => UserEntity, user => user.wishlist)
+    @ManyToMany(() => UserEntity, user => user.wishlist, { onDelete: 'CASCADE' })
     @JoinTable()
     researchers: UserEntity[];
 }

@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { CreateTagDto } from "src/tags/dto/create-tag.dto";
 
 export class CreateFigurineDto {
 
@@ -45,4 +46,8 @@ export class CreateFigurineDto {
     @IsOptional()
     @IsString()
     img_name: string;
+
+    @IsOptional()
+    @IsArray()
+    tags: CreateTagDto[];
 }

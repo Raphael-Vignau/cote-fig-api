@@ -11,6 +11,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../enums/user.role';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { SignupUserDto } from "src/auth/dto/signup-user.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -23,6 +24,12 @@ export class AuthController {
         return await this.authService.sendWelcome(id);
     }
 
+    @UseGuards(EmailUniqueGuard)
+    @Post('signup')
+    async signUp(@Body() user: SignupUserDto) {
+        return await this.authService.signUp(user);
+    }
+
     @UseGuards(LocalAuthGuard)
     @Post('login')
     async login(@User() user) {
@@ -32,7 +39,7 @@ export class AuthController {
     @UseGuards(JwtAuthGuard, EmailUniqueGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Post('add')
-    async signUp(@Body() user: CreateUserDto): Promise<CreateUserDto> {
+    async addUser(@Body() user: CreateUserDto): Promise<CreateUserDto> {
         return await this.authService.addUser(user);
     }
 

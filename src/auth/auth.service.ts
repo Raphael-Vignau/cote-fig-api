@@ -4,14 +4,16 @@ import * as bcrypt from "bcrypt";
 import { UsersService } from "../users/users.service";
 import { JwtService } from "@nestjs/jwt";
 import { UserStatus } from "../enums/user.status";
-// import { MailerService } from '@nestjs-modules/mailer';
+import { MailerService } from "@nestjs-modules/mailer";
 import { CreateUserDto } from "../users/dto/create-user.dto";
+import { UserRole } from "src/enums/user.role";
+import { SignupUserDto } from "src/auth/dto/signup-user.dto";
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly usersService: UsersService,
-        // private readonly mailerService: MailerService,
+        private readonly mailerService: MailerService,
         private readonly jwtService: JwtService
     ) {
     }
@@ -29,22 +31,31 @@ export class AuthService {
         return result;
     }
 
+    public async signUp(user: SignupUserDto) {
+        const pass: string = await AuthService.hashPassword(user.password);
+        const newUser = await this.usersService.createUser({ ...user, password: pass, role: UserRole.USER });
+
+        const token = await this.generateToken(newUser);
+        return this.sendConfirmation(newUser, token)
+        // return { access_token: token };
+    }
+
     async login(user: Partial<UserEntity>) {
         const token = await this.generateToken(user);
         return { access_token: token };
     }
 
     public async sendConfirmation(user: UserEntity, token: string) {
-        // const confirmLink = `${process.env.APP_CORS_ORIGIN}/auth/login?token=${token}`;
-        //
-        // await this.mailerService.sendMail({
-        //     to: user.email,
-        //     subject: 'Verify User',
-        //     html: `
-        //         <h3>Hello ${user.username}!</h3>
-        //         <p>Please use this <a href="${confirmLink}">link</a> to confirm your account.</p>
-        //     `,
-        // });
+        const confirmLink = `${process.env.APP_CORS_ORIGIN}/auth/login?token=${token}`;
+
+        await this.mailerService.sendMail({
+            to: user.email,
+            subject: "Verify User",
+            html: `
+                <h3>Hello ${user.username}!</h3>
+                <p>Please use this <a href="${confirmLink}">link</a> to confirm your account.</p>
+            `
+        });
     }
 
     public async addUser(user: CreateUserDto): Promise<CreateUserDto> {
@@ -52,37 +63,37 @@ export class AuthService {
     }
 
     public async sendWelcome(id: string) {
-        // const user = await this.usersService.findOneUserById(id);
-        // const token = await this.generateToken(user);
-        // const forgotLink = `${process.env.APP_CORS_ORIGIN}/auth/new-password?welcome=true&token=${token}`;
-        //
-        // await this.mailerService.sendMail({
-        //     to: user.email,
-        //     subject: 'Bienvenue sur cote-fig',
-        //     html: `
-        //         <h3>Bienvenue ${user.username}!</h3>
-        //         <p>Voila un lien pour valider votre email et définir votre mots de passe : <a href="${forgotLink}">cote-fig</a></p>
-        //     `,
-        // });
+        const user = await this.usersService.findOneUserById(id);
+        const token = await this.generateToken(user);
+        const forgotLink = `${process.env.APP_CORS_ORIGIN}/auth/new-password?welcome=true&token=${token}`;
+
+        await this.mailerService.sendMail({
+            to: user.email,
+            subject: 'Bienvenue sur cote-fig',
+            html: `
+                <h3>Bienvenue ${user.username}!</h3>
+                <p>Voila un lien pour valider votre email et définir votre mots de passe : <a href="${forgotLink}">cote-fig</a></p>
+            `,
+        });
     }
 
     public async resetPassword(user: UserEntity) {
-        // const token = await this.generateToken(user);
-        // const forgotLink = `${process.env.APP_CORS_ORIGIN}/auth/new-password?token=${token}`;
-        //
-        // return this.mailerService.sendMail({
-        //     to: user.email,
-        //     subject: 'Forgot Password',
-        //     text: `Please use this ${forgotLink} to reset your password.`,
-        //     html: `
-        //         <h3>Hello ${user.username}!</h3>
-        //         <p>Please use this <a href="${forgotLink}">link</a> to reset your password.</p>
-        //     `
-        // }).then(
-        //     res =>{
-        //         return !!res.accepted.length
-        //     }
-        // )
+        const token = await this.generateToken(user);
+        const forgotLink = `${process.env.APP_CORS_ORIGIN}/auth/new-password?token=${token}`;
+
+        return this.mailerService.sendMail({
+            to: user.email,
+            subject: 'Forgot Password',
+            text: `Please use this ${forgotLink} to reset your password.`,
+            html: `
+                <h3>Hello ${user.username}!</h3>
+                <p>Please use this <a href="${forgotLink}">link</a> to reset your password.</p>
+            `
+        }).then(
+            res =>{
+                return !!res.accepted.length
+            }
+        )
     }
 
     public async confirm(user: UserEntity) {

@@ -5,6 +5,8 @@ import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { FigurinesModule } from "./figurines/figurines.module";
 import { TagsModule } from "./tags/tags.module";
+import { MailerModule } from "@nestjs-modules/mailer";
+import { PugAdapter } from "@nestjs-modules/mailer/dist/adapters/pug.adapter";
 
 @Module({
     imports: [
@@ -22,26 +24,26 @@ import { TagsModule } from "./tags/tags.module";
             // TODO ATTENTION passer à "false" en prod
             synchronize: true
         }),
-        // MailerModule.forRoot({
-        //     transport: {
-        //         host: process.env.MAILER_HOST,
-        //         secure: false,
-        //         auth: {
-        //             user: process.env.MAILER_USER,
-        //             pass: process.env.MAILER_PASSWORD
-        //         },
-        //     },
-        //     defaults: {
-        //         from: process.env.MAILER_FROM
-        //     },
-        //     template: {
-        //         dir: __dirname + '/templates',
-        //         adapter: new PugAdapter(),
-        //         options: {
-        //             strict: true
-        //         }
-        //     }
-        // }),
+        MailerModule.forRoot({
+            transport: {
+                host: process.env.MAILER_HOST,
+                secure: false,
+                auth: {
+                    user: process.env.MAILER_USER,
+                    pass: process.env.MAILER_PASSWORD
+                }
+            },
+            defaults: {
+                from: process.env.MAILER_FROM
+            },
+            template: {
+                dir: __dirname + "/templates",
+                adapter: new PugAdapter(),
+                options: {
+                    strict: true
+                }
+            }
+        }),
         AuthModule,
         FigurinesModule,
         TagsModule

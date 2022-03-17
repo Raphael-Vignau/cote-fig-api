@@ -50,9 +50,9 @@ export class UserEntity extends TimestampEntities {
     })
     city!: string;
 
-    @ManyToMany(() => FigurineEntity, figurine => figurine.holders)
+    @ManyToMany(() => FigurineEntity, figurine => figurine.holders, { onDelete: 'CASCADE' })
     collection: FigurineEntity[];
 
-    @ManyToMany(() => FigurineEntity, figurine => figurine.researchers)
+    @ManyToMany(() => FigurineEntity, figurine => figurine.researchers, { onDelete: 'CASCADE' })
     wishlist: FigurineEntity[];
 }

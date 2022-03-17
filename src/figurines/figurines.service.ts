@@ -22,32 +22,33 @@ export class FigurinesService {
     }
 
     async findOneFigurineById(id: string): Promise<Partial<FigurineEntity>> {
-        return await this.figurineRepository.createQueryBuilder('figurine')
-            .leftJoin('figurine.holders', 'holders')
-            .leftJoin('figurine.researchers', 'researchers')
-            .leftJoin('figurine.tags', 'tags')
-            .addSelect(['holders.id', 'holders.username', 'researchers.id', 'researchers.username', 'tags.name'])
-            .where({id})
-            .getOne()
-
+        return await this.figurineRepository.createQueryBuilder("figurine")
+            .leftJoin("figurine.holders", "holders")
+            .leftJoin("figurine.researchers", "researchers")
+            .leftJoin("figurine.tags", "tags")
+            .addSelect(["holders.id", "holders.username", "researchers.id", "researchers.username", "tags.name"])
+            .where({ id })
+            .getOne();
     }
 
     async findFigurines(
         contains: string,
         skip: number,
         take: number,
-        order: any
+        order: any,
+        tagsNameList: string[] = []
     ): Promise<FigurineEntity[]> {
         return await this.figurineRepository.find({
             skip, take, order,
             relations: ["holders", "researchers"],
-            loadRelationIds: true,
-            where: [
-                { name: Like(`%${contains}%`) },
-                { publisher: Like(`%${contains}%`) },
-                { artist: Like(`%${contains}%`) },
-                { game: Like(`%${contains}%`) }
-            ]
+            join: { alias: "figurines", innerJoin: { tags: "figurines.tags" } },
+            where: qb => {
+                if (tagsNameList.length) {
+                    qb.where("tags.name IN (:...tagsNameList)", { tagsNameList })
+                        .groupBy("figurines.id")
+                        .having("COUNT(distinct tags.name) >= " + tagsNameList.length);
+                }
+            }
         });
     }
 
@@ -59,13 +60,20 @@ export class FigurinesService {
         idUser: string,
         skip: number,
         take: number,
-        order: any): Promise<FigurineEntity[]> {
+        order: any,
+        tagsNameList: string[] = []
+        ): Promise<FigurineEntity[]> {
         console.log("Collection of user : " + idUser);
         return await this.figurineRepository.find({
             skip, take, order,
-            join: { alias: "figurines", innerJoin: { holders: "figurines.holders" } },
+            join: { alias: "figurines", innerJoinAndSelect: { holders: "figurines.holders" }, innerJoin: { tags: "figurines.tags" } },
             where: qb => {
                 qb.where("holders.id = :id", { id: idUser });
+                if (tagsNameList.length) {
+                    qb.where("tags.name IN (:...tagsNameList)", { tagsNameList })
+                        .groupBy("figurines.id")
+                        .having("COUNT(distinct tags.name) >= " + tagsNameList.length);
+                }
             }
         });
     }
@@ -89,6 +97,11 @@ export class FigurinesService {
         if (filesFigurine && filesFigurine.img_figurine && filesFigurine.img_figurine.length) {
             figurine.img_original_name = filesFigurine.img_figurine[0].originalname;
             figurine.img_name = filesFigurine.img_figurine[0].filename;
+        }
+        if (figurine.tags && figurine.tags.length) {
+            figurine.tags.map(async (tag) => {
+                await this.tagRepository.save(tag);
+            });
         }
         const newFigurine = {
             ...figurine
